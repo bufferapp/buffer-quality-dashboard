@@ -1,0 +1,21 @@
+.card {
+
+}
+
+.chart-container {
+
+    background-color: whitesmoke;
+}
+
+.number-container {
+
+    background-color: grey;
+}
+
+.chart {
+    height: 500px;
+}
+
+.number {
+    height: 200px;
+}
