@@ -2,6 +2,11 @@
 
 }
 
+.card h3 {
+    margin-top: 0;
+    font-size: 1.5rem;
+}
+
 .chart-container {
 
     background-color: whitesmoke;
@@ -9,13 +14,17 @@
 
 .number-container {
 
-    background-color: grey;
 }
 
 .chart {
     height: 500px;
 }
 
+
 .number {
-    height: 200px;
+    width: 100%;
+    text-align: center;
+    font-size: 8rem;
+    font-weight: 600;
+    padding: 20px 0 40px 0;
 }
