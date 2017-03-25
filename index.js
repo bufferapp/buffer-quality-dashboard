@@ -1,6 +1,17 @@
 var express = require('express')
 var app = express()
 var path = __dirname + '/views/';
+const token = process.env.GITHUB_TOKEN;
+
+if (!token) {
+    try {
+        const token = require('./githubToken.json');
+    }
+    catch(error) {
+        console.log('No Github token');
+        return;
+    }
+}
 
 const PORT = process.env.PORT || 3000;
 
