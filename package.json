@@ -1,0 +1,25 @@
+{
+  "name": "buffer-quality-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard visualizing GitHub issues for Buffer web",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bufferapp/buffer-quality-dashboard.git"
+  },
+  "author": "Katie Womersley",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bufferapp/quality-dashboard/issues"
+  },
+  "homepage": "https://github.com/bufferapp/quality-dashboard#readme",
+  "dependencies": {
+    "express": "^4.15.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  }
+}
