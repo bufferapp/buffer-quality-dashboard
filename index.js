@@ -1,5 +1,6 @@
 var express = require('express')
 var _ = require('underscore');
+var ejs = require('ejs');
 var app = express()
 var path = __dirname + '/views/';
 var GitHubApi = require('github');
@@ -38,8 +39,27 @@ app.get('/', function (req, res) {
           return (!issue.pull_request);
         });
 
-        console.log(issues.length);
-        res.sendFile(path + "index.html");
+        let importantIssues = _.filter(issues, function(issue) {
+            let important = false;
+            _.each(issue.labels, function(label) {
+                if (label.name === 'severity:S1' || label.name === 'priority:P1') {
+                    important = true;
+                }
+            });
+            return important;
+        });
+
+        let filename = path + "index.ejs";
+        let data = {
+            issueTotal: issues.length,
+            importantIssueTotal: importantIssues.length
+        };
+        let options = {};
+        ejs.renderFile(filename, data, options, function(err, str){
+            // str is a rendered HTML string
+            res.send(str);
+        });
+
     });
 
 })
