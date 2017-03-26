@@ -11,10 +11,10 @@ $(function() {
                     label: 'Important Issues',
                     data: [12, 19, 3, 5],
                     backgroundColor: [
-                       'rgba(54, 162, 235, 0.2)'
+                       '#BAE2F1'
                     ],
                     borderColor: [
-                        'rgba(54, 162, 235, 1)'
+                        '#5FB6ED'
                     ],
                     borderWidth: 1
                 },
@@ -22,10 +22,10 @@ $(function() {
                     label: 'Total Issues',
                     data: [12, 19, 3, 5],
                     backgroundColor: [
-                        'rgba(75, 192, 192, 0.2)'
+                        '#DBF2F2'
                     ],
                     borderColor: [
-                        'rgba(75, 192, 192, 1)'
+                        '#4BC0C0'
                     ],
                     borderWidth: 1
                 },
