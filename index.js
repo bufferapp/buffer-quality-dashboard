@@ -22,6 +22,11 @@ if (process.env.ENV === 'production') {
 
 app.use(express.static('assets'))
 
+app.get('/data', function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ importantIssues: [1, 4, 3, 0], totalIssues: [12, 19, 3, 5] }));
+})
+
 app.get('/', function (req, res) {
 
     var args = {
