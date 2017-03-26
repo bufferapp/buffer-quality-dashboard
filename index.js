@@ -1,7 +1,7 @@
-var express = require('express')
+var express = require('express');
 var _ = require('underscore');
 var ejs = require('ejs');
-var app = express()
+var app = express();
 var path = __dirname + '/views/';
 var GitHubApi = require('github');
 var githubToken;
@@ -40,13 +40,13 @@ app.get('/', function (req, res) {
         });
 
         let importantIssues = _.filter(issues, function(issue) {
-            let important = false;
+            let isImportant = false;
             _.each(issue.labels, function(label) {
                 if (label.name === 'severity:S1' || label.name === 'priority:P1') {
-                    important = true;
+                    isImportant = true;
                 }
             });
-            return important;
+            return isImportant;
         });
 
         let filename = path + "index.ejs";
