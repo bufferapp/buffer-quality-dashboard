@@ -1,5 +1,6 @@
 var express = require('express');
 var _ = require('underscore');
+var Promise = require('bluebird');
 var ejs = require('ejs');
 var app = express();
 var path = __dirname + '/views/';
@@ -28,17 +29,42 @@ app.get('/data', function(req, res) {
 })
 
 app.get('/', function (req, res) {
+    let options = {};
+    getIssueData(options, function(issuesData) {
+        let filename = path + "index.ejs";
+        let data = {
+            issueTotal: issuesData.totalIssues.length,
+            importantIssueTotal: issuesData.importantIssues.length
+        };
 
+        let options = {};
+        ejs.renderFile(filename, data, options, function(err, str){
+            // str is a rendered HTML string
+            res.send(str);
+        });
+    });
+
+})
+
+app.listen(PORT, function () {
+    console.log('Example app listening on port ' + PORT + '!')
+})
+
+function getIssueData(options, callBack) {
     var args = {
         owner: 'bufferapp',
         repo: 'buffer-web',
-        filter: 'open',
-        state: 'open',
+        filter: 'all',
+        state: 'all',
         since: (new Date(0)).toISOString(),
         per_page: 100
     };
 
     github.issues.getForRepo(args, function(err, issues) {
+        console.log(issues.data.length);
+        console.log(issues.meta.link);
+
+        // TODO use the bluebird promise pattern to paginate
 
         issues = _.filter(issues.data, function(issue) {
           return (!issue.pull_request);
@@ -54,24 +80,17 @@ app.get('/', function (req, res) {
             return isImportant;
         });
 
-        let filename = path + "index.ejs";
-        let data = {
-            issueTotal: issues.length,
-            importantIssueTotal: importantIssues.length
-        };
-        let options = {};
-        ejs.renderFile(filename, data, options, function(err, str){
-            // str is a rendered HTML string
-            res.send(str);
-        });
+
+        let issueData = {
+            totalIssues: issues,
+            importantIssues: importantIssues
+        }
+
+        callBack(issueData);
 
     });
 
-})
-
-app.listen(PORT, function () {
-    console.log('Example app listening on port ' + PORT + '!')
-})
+}
 
 const github = new GitHubApi({
     // optional
