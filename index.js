@@ -54,8 +54,8 @@ function getIssueData(options, callBack) {
     var args = {
         owner: 'bufferapp',
         repo: 'buffer-web',
-        filter: 'all',
-        state: 'all',
+        filter: 'open',
+        state: 'open',
         since: (new Date(0)).toISOString(),
         per_page: 100
     };
