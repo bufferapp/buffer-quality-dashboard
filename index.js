@@ -29,7 +29,12 @@ app.get('/data', function(req, res) {
 })
 
 app.get('/', function (req, res) {
-    let options = {};
+
+    let options = {
+        filter: 'all',
+        state: 'all',
+    };
+
     getIssueData(options, function(issuesData) {
         let filename = path + "index.ejs";
         let data = {
@@ -50,27 +55,30 @@ app.listen(PORT, function () {
     console.log('Example app listening on port ' + PORT + '!')
 })
 
-function getIssueData(options, callBack) {
+// queries GitHub for issues
+function queryForIssues(options, callBack) {
     var args = {
         owner: 'bufferapp',
         repo: 'buffer-web',
-        filter: 'all',
-        state: 'all',
+        filter: options.filter,
+        state: options.state,
         since: (new Date(0)).toISOString(),
         per_page: 100
     };
 
-    github.issues.getForRepo(args, function(err, issues) {
-        //console.log(issues.meta.link);
-        //console.log(issues.data);
-
+     github.issues.getForRepo(args, function(err, issues) {
         // TODO use the bluebird promise pattern to paginate
-
         issues = _.filter(issues.data, function(issue) {
           return (!issue.pull_request);
         });
+        callBack(issues);
+     });
+}
 
-        const NDAYS = 7;
+// returns array of num issues open by day
+function getIssueData(options, callBack) {
+    queryForIssues(options, function(issues) {
+        const NDAYS = 7; // should be an option
         let date = new Date();
         date.setDate(date.getDate() - NDAYS);
         let dateNDaysAgo = date.toISOString();
@@ -82,34 +90,69 @@ function getIssueData(options, callBack) {
         });
 
         let issuesCreatedAfterDate = _.filter(issues, function(issue) {
-            // issue.created_at; issue.updated_at, issue.closed_at
-            // closed_at: '2017-03-17T12:50:51Z'
           return issue.created_at >= dateNDaysAgo;
         });
 
-        console.log(issuesCreatedAfterDate);
+        // Now we need to get current open issues
+        queryForIssues({filter: 'open', state: 'open'}, function(openIssues) {
+             // initialize an object with date as the key and current open issue count as the value
+            let issueTotalsByDate = {};
+            for (var i = 0; i < NDAYS; i++) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                issueTotalsByDate[d.toISOString()] = openIssues.length;
+            }
+
+            console.log(issueTotalsByDate);
 
 
-        let importantIssues = _.filter(issues, function(issue) {
-            let isImportant = false;
-            _.each(issue.labels, function(label) {
-                if (label.name === 'severity:S1' || label.name === 'priority:P1') {
-                    isImportant = true;
+             _.each(issuesClosedAfterDate, function(closedIssue) {
+                console.log(closedIssue.closed_at);
+                for (var date in issueTotalsByDate) {
+                    // increment value at this date and all the prev dates
+                    if (date <= closedIssue.closed_at) {
+                        console.log("incrementing " + date + " from " + issueTotalsByDate[date]);
+                        issueTotalsByDate[date]++;
+                        console.log("to the new total of", issueTotalsByDate[date]);
+                    }
                 }
             });
-            return isImportant;
+
+            console.log(issueTotalsByDate);
+
+            _.each(issuesCreatedAfterDate, function(openedIssue) {
+                console.log(openedIssue.created_at);
+                for (var date in issueTotalsByDate) {
+                    // decrememnt value at this date and all the prev dates
+                    if (date <= openedIssue.created_at) {
+                        console.log("decrememtning " + date + " from " + issueTotalsByDate[date]);
+                        issueTotalsByDate[date]--;
+                        console.log("to the new total of", issueTotalsByDate[date]);
+                    }
+                }
+            });
+
+            console.log(issueTotalsByDate);
+
+
+            let importantIssues = _.filter(issues, function(issue) {
+                let isImportant = false;
+                _.each(issue.labels, function(label) {
+                    if (label.name === 'severity:S1' || label.name === 'priority:P1') {
+                        isImportant = true;
+                    }
+                });
+                return isImportant;
+            });
+
+            // want to return an array of total issues by day and important issues by day
+            let issueData = {
+                totalIssues: issues,
+                importantIssues: importantIssues
+            }
+            callBack(issueData);
         });
-
-
-        let issueData = {
-            totalIssues: issues,
-            importantIssues: importantIssues
-        }
-
-        callBack(issueData);
-
     });
-
 }
 
 const github = new GitHubApi({
