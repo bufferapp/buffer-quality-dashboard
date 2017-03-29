@@ -54,21 +54,41 @@ function getIssueData(options, callBack) {
     var args = {
         owner: 'bufferapp',
         repo: 'buffer-web',
-        filter: 'open',
-        state: 'open',
+        filter: 'all',
+        state: 'all',
         since: (new Date(0)).toISOString(),
         per_page: 100
     };
 
     github.issues.getForRepo(args, function(err, issues) {
-        console.log(issues.data.length);
-        console.log(issues.meta.link);
+        //console.log(issues.meta.link);
+        //console.log(issues.data);
 
         // TODO use the bluebird promise pattern to paginate
 
         issues = _.filter(issues.data, function(issue) {
           return (!issue.pull_request);
         });
+
+        const NDAYS = 7;
+        let date = new Date();
+        date.setDate(date.getDate() - NDAYS);
+        let dateNDaysAgo = date.toISOString();
+
+        let issuesClosedAfterDate = _.filter(issues, function(issue) {
+            // issue.created_at; issue.updated_at, issue.closed_at
+            // closed_at: '2017-03-17T12:50:51Z'
+          return issue.closed_at >= dateNDaysAgo;
+        });
+
+        let issuesCreatedAfterDate = _.filter(issues, function(issue) {
+            // issue.created_at; issue.updated_at, issue.closed_at
+            // closed_at: '2017-03-17T12:50:51Z'
+          return issue.created_at >= dateNDaysAgo;
+        });
+
+        console.log(issuesCreatedAfterDate);
+
 
         let importantIssues = _.filter(issues, function(issue) {
             let isImportant = false;
