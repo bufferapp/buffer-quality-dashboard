@@ -8,7 +8,7 @@ var GitHubApi = require('github');
 var githubToken;
 
 const PORT = process.env.PORT || 3000;
-const NDAYS = 5; // The number of days to display
+const NDAYS = 30; // The number of days to display
 
 if (process.env.ENV === 'production') {
     githubToken = process.env.GITHUB_TOKEN;
@@ -79,20 +79,40 @@ function queryForIssues(options, callBack) {
         filter: options.filter,
         state: options.state,
         per_page: 100
+
     };
 
-    if (options.sinceDate != null) {
-        args.since = options.sinceDate; // Only issues updated at or after this time are returned
-    }
+    // if (options.sinceDate != null) {
+    //     args.since = options.sinceDate; // Only issues updated at or after this time are returned
+    // }
+    var mergedIssues = [];
 
-    github.issues.getForRepo(args, function(err, issues) {
+    function getPageIssues(page) {
+      console.log('page', page);
+      console.log('options.pages', options.pages)
+      args.page = page;
+      github.issues.getForRepo(args, function(err, issues) {
         console.log(issues.data.length, 'total issues returned, including pull requests');
         // TODO use the bluebird promise pattern to paginate
+
         issues = _.filter(issues.data, function(issue) {
           return (!issue.pull_request);
         });
-        callBack(issues);
-    });
+
+        //callBack(issues);
+        mergedIssues = mergedIssues.concat(issues);
+        //console.log(mergedIssues);
+        // TODO: check date rather than pages
+        if(page < options.pages) {
+            getPageIssues(page + 1);
+        } else {
+            //console.log('mergedIssues', mergedIssues);
+            callBack(mergedIssues);
+        }
+      });
+    }
+    getPageIssues(1);
+
 }
 
 // returns array of num issues open by day
@@ -143,7 +163,7 @@ function getIssueData(options, callBack) {
                     // decrememnt value at this date and all the prev dates
                     if (convertTimeToMidnight(openedIssue.created_at) > date) {
                         issueTotalsByDate[date]--;
-                        if (isImportantIssue(closedIssue)) {
+                        if (isImportantIssue(openedIssue)) {
                             importantIssueTotalsByDate[date]++;
                         }
                     }
@@ -205,6 +225,7 @@ function setDefaultOptions(NDAYS) {
         sinceDate: sinceDate,
         filter: 'all',
         state: 'all',
+        pages: 3,
     };
 
     return options;
