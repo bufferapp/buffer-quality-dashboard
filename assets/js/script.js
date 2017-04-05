@@ -7,7 +7,7 @@ $(function() {
             var myChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ["3 Weeks Ago", "2 Weeks Ago", "Last Week", "Today"],
+                labels: data.labels,
                 datasets: [
                     {
                         label: 'Important Issues',

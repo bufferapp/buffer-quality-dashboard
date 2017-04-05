@@ -25,12 +25,16 @@ app.use(express.static('assets'))
 
 app.get('/data', function(req, res) {
     res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify({ importantIssues: [1, 4, 3, 0], totalIssues: [12, 19, 3, 5] }));
-})
 
-app.get('/', function (req, res) {
+    const NDAYS = 5;
+    let date = new Date();
+    date.setDate(date.getDate() - NDAYS);
+    let sinceDate = date.toISOString();
+    sinceDate = convertTimeToMidnight(sinceDate);
 
     let options = {
+        NDAYS: NDAYS,
+        sinceDate: sinceDate,
         filter: 'all',
         state: 'all',
     };
@@ -39,7 +43,47 @@ app.get('/', function (req, res) {
         let filename = path + "index.ejs";
         let data = {
             issueTotal: issuesData.totalIssues.length,
-            importantIssueTotal: issuesData.importantIssues.length
+            importantIssueTotal: issuesData.importantIssues.length,
+            issueTotalsByDate: issuesData.issueTotalsByDate
+        };
+
+        let issueTotals = [];
+        let importantIssueTotals = [];
+        let labels = []
+        for (var date in issuesData.issueTotalsByDate) {
+            issueTotals.unshift(issuesData.issueTotalsByDate[date]);
+            importantIssueTotals.unshift(0);
+            prettyDate = date.split('T')[0];
+            labels.unshift(prettyDate);
+        }
+
+
+        res.send(JSON.stringify({ importantIssues: importantIssueTotals, totalIssues: issueTotals, labels: labels}));
+
+    });
+})
+
+app.get('/', function (req, res) {
+
+    const NDAYS = 5;
+    let date = new Date();
+    date.setDate(date.getDate() - NDAYS);
+    let sinceDate = date.toISOString();
+    sinceDate = convertTimeToMidnight(sinceDate);
+
+    let options = {
+        NDAYS: NDAYS,
+        sinceDate: sinceDate,
+        filter: 'all',
+        state: 'all',
+    };
+
+    getIssueData(options, function(issuesData) {
+        let filename = path + "index.ejs";
+        let data = {
+            issueTotal: issuesData.totalIssues.length,
+            importantIssueTotal: issuesData.importantIssues.length,
+            issueTotalsByDate: issuesData.issueTotalsByDate
         };
 
         let options = {};
@@ -62,11 +106,17 @@ function queryForIssues(options, callBack) {
         repo: 'buffer-web',
         filter: options.filter,
         state: options.state,
-        since: (new Date(0)).toISOString(),
         per_page: 100
     };
 
+    if (options.sinceDate != null) {
+        args.since = options.sinceDate; // Only issues updated at or after this time are returned
+    }
+
+    console.log('args', args);
+
      github.issues.getForRepo(args, function(err, issues) {
+        console.log(issues.data.length, 'total issues returned, including pull requests');
         // TODO use the bluebird promise pattern to paginate
         issues = _.filter(issues.data, function(issue) {
           return (!issue.pull_request);
@@ -78,42 +128,44 @@ function queryForIssues(options, callBack) {
 // returns array of num issues open by day
 function getIssueData(options, callBack) {
     queryForIssues(options, function(issues) {
-        const NDAYS = 7; // should be an option
-        let date = new Date();
-        date.setDate(date.getDate() - NDAYS);
-        let dateNDaysAgo = date.toISOString();
 
         let issuesClosedAfterDate = _.filter(issues, function(issue) {
             // issue.created_at; issue.updated_at, issue.closed_at
             // closed_at: '2017-03-17T12:50:51Z'
-          return issue.closed_at >= dateNDaysAgo;
+          return issue.closed_at >= options.sinceDate;
         });
 
+        console.log(issuesClosedAfterDate.length, 'issues closed in last ', options.NDAYS, ' days');
+
         let issuesCreatedAfterDate = _.filter(issues, function(issue) {
-          return issue.created_at >= dateNDaysAgo;
+          return issue.created_at >= options.sinceDate;
         });
+
+        console.log(issuesCreatedAfterDate.length, 'issues opened in last ', options.NDAYS, ' days');
 
         // Now we need to get current open issues
         queryForIssues({filter: 'open', state: 'open'}, function(openIssues) {
              // initialize an object with date as the key and current open issue count as the value
             let issueTotalsByDate = {};
-            for (var i = 0; i < NDAYS; i++) {
+            for (var i = 0; i < options.NDAYS; i++) {
                 let d = new Date();
                 d.setDate(d.getDate() - i);
-                issueTotalsByDate[d.toISOString()] = openIssues.length;
+                issueTotalsByDate[convertTimeToMidnight(d.toISOString())] = openIssues.length;
             }
 
             console.log(issueTotalsByDate);
 
 
              _.each(issuesClosedAfterDate, function(closedIssue) {
-                console.log(closedIssue.closed_at);
+                //console.log('issue.closed_at: ', convertTimeToMidnight(closedIssue.closed_at));
                 for (var date in issueTotalsByDate) {
+                    //console.log('date key: ', date);
                     // increment value at this date and all the prev dates
-                    if (date <= closedIssue.closed_at) {
-                        console.log("incrementing " + date + " from " + issueTotalsByDate[date]);
+                    // if the issue was closed before or on the date
+                    if (convertTimeToMidnight(closedIssue.closed_at) > date) {
+                        //console.log("incrementing " + date + " from " + issueTotalsByDate[date]);
                         issueTotalsByDate[date]++;
-                        console.log("to the new total of", issueTotalsByDate[date]);
+                        //console.log("to the new total of", issueTotalsByDate[date]);
                     }
                 }
             });
@@ -121,10 +173,11 @@ function getIssueData(options, callBack) {
             console.log(issueTotalsByDate);
 
             _.each(issuesCreatedAfterDate, function(openedIssue) {
-                console.log(openedIssue.created_at);
+                console.log('issue.opened_at: ', convertTimeToMidnight(openedIssue.created_at));
                 for (var date in issueTotalsByDate) {
+                    console.log('date key: ', date);
                     // decrememnt value at this date and all the prev dates
-                    if (date <= openedIssue.created_at) {
+                    if (convertTimeToMidnight(openedIssue.created_at) > date) {
                         console.log("decrememtning " + date + " from " + issueTotalsByDate[date]);
                         issueTotalsByDate[date]--;
                         console.log("to the new total of", issueTotalsByDate[date]);
@@ -133,7 +186,6 @@ function getIssueData(options, callBack) {
             });
 
             console.log(issueTotalsByDate);
-
 
             let importantIssues = _.filter(issues, function(issue) {
                 let isImportant = false;
@@ -148,8 +200,10 @@ function getIssueData(options, callBack) {
             // want to return an array of total issues by day and important issues by day
             let issueData = {
                 totalIssues: issues,
-                importantIssues: importantIssues
+                importantIssues: importantIssues,
+                issueTotalsByDate: issueTotalsByDate
             }
+
             callBack(issueData);
         });
     });
@@ -171,3 +225,9 @@ github.authenticate({
   type: 'oauth',
   token: githubToken
 });
+
+function convertTimeToMidnight(isoString) {
+    isoString = isoString.split('T')[0] + 'T00:00:00Z';
+    return isoString;
+}
+
