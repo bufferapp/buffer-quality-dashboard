@@ -8,7 +8,7 @@ var GitHubApi = require('github');
 var githubToken;
 
 const PORT = process.env.PORT || 3000;
-const NDAYS = 5; // The number of days to display
+const NDAYS = 30; // The number of days to display
 const RECENTDAYS = 7; // How many days we consider "recent"
 
 if (process.env.ENV === 'production') {
@@ -243,7 +243,7 @@ function setDefaultOptions(NDAYS) {
         recentDate: recentDate,
         filter: 'all',
         state: 'all',
-        pages: 1,
+        pages: 4,
     };
 
     return options;
