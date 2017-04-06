@@ -8,7 +8,7 @@ var GitHubApi = require('github');
 var githubToken;
 
 const PORT = process.env.PORT || 3000;
-const NDAYS = 30; // The number of days to display
+const NDAYS = 5; // The number of days to display
 
 if (process.env.ENV === 'production') {
     githubToken = process.env.GITHUB_TOKEN;
@@ -103,7 +103,7 @@ function queryForIssues(options, callBack) {
         mergedIssues = mergedIssues.concat(issues);
         //console.log(mergedIssues);
         // TODO: check date rather than pages
-        if(page < options.pages) {
+        if (page < options.pages) {
             getPageIssues(page + 1);
         } else {
             //console.log('mergedIssues', mergedIssues);
@@ -225,7 +225,7 @@ function setDefaultOptions(NDAYS) {
         sinceDate: sinceDate,
         filter: 'all',
         state: 'all',
-        pages: 3,
+        pages: 1,
     };
 
     return options;

@@ -1,5 +1,44 @@
-.card {
+body {
+  font-family: 'open sans', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 21px;
+  color: #59626a;
 
+  background-color: #f4f7f9;
+}
+
+h1,
+h2 {
+  font-weight: 100;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+  margin-bottom: 16px;
+
+  color: #323b43;
+}
+
+// Sidebar
+
+.main-nav-button:hover {
+  background-color: #f4f7f9;
+  border: 1px solid #888;
+}
+
+.sidebar-nav li a:hover {
+  background-color: #f4f7f9;
+}
+
+.bi-buffer {
+    margin-left: -25px;
+    margin-right: 5px;
 }
 
 .card h3 {
@@ -7,17 +46,17 @@
     font-size: 1.5rem;
 }
 
-.chart-container {
+// Charts
 
-    background-color: whitesmoke;
+.chart-container {
 }
 
 .number-container {
 
 }
 
-.chart {
-    height: 500px;
+#issuesChart {
+    max-height: 500px;
 }
 
 
@@ -27,4 +66,48 @@
     font-size: 8rem;
     font-weight: 600;
     padding: 20px 0 40px 0;
+}
+
+// Toggle
+#menu-toggle {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+}
+
+/* Overrides */
+#sidebar-wrapper {
+  background-color: #dedede;
+}
+
+.sidebar-nav li a {
+  color: #444;
+}
+
+.sidebar-nav li a:hover {
+  color: initial;
+}
+
+.sidebar-nav hr {
+  width: 100%;
+  box-shadow: 1px 1px 5px #ccc;
+}
+
+.sidebar-nav li a.selected {
+  background-color: #f4f7f9;
+}
+
+.sidebar-nav > .sidebar-brand {
+  height: 80px;
+}
+
+.sidebar-nav > .sidebar-brand a {
+  color: #444;
+}
+
+.highcharts-container {
+  overflow: visible !important;
+}
+.highcharts-container svg{
+  overflow: visible;
 }

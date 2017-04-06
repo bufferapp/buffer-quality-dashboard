@@ -1,5 +1,13 @@
 $(function() {
 
+     $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+        $(this).text(function(i, text){
+          return text === "exit full screen" ? "full screen" : "exit full screen";
+        })
+    });
+
     var ctx = document.getElementById('issuesChart');
 
     $.get( '/data', function( data ) {
@@ -48,12 +56,21 @@ $(function() {
                 ]
             },
             options: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 15
+                    }
+                },
+
                 scales: {
                     yAxes: [{
                         ticks: {
-                            beginAtZero:true
+                            //beginAtZero: true,
+                            stepSize: 5
                         },
-                        stacked: true
+                        stacked: false
                     }]
                 }
             }
