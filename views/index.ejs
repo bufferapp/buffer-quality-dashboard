@@ -12,6 +12,7 @@
         <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
         <!-- NB this includes moment.js as well -->
         <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.min.js"></script>
+        <script src="//use.fontawesome.com/48f2cc9ae8.js"></script>
         <script src="/js/script.js"></script>
     </head>
 
@@ -74,7 +75,7 @@
                 <!-- full-screen toggle -->
                 <div class="row">
                     <div class="col-lg-12">
-                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Full Screen</a>
+                        <!--<a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Full Screen</a>-->
                     </div> <!-- col-lg-12 -->
                  </div> <!-- row-->
             </div> <!-- container-fluid -->
@@ -82,7 +83,44 @@
             <div class="container-fluid" id="overview">
                 <div class="row">
                     <div class="col-xs-12">
-                    <h3>Recent Issues</h3>
+                    <h3><%= recentlyCreatedIssuesTotal %> issues opened in the last 7 days:</h3>
+                    <table>
+                        <% for(var i=0; i < recentlyCreatedIssues.length; i++) { %>
+                           <tr>
+                                <td>
+                                <% if(recentlyCreatedIssues[i].state === 'open'){ %>
+                                    <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+                                <% } else{ %>
+                                    <i class="fa fa-check-circle-o" aria-hidden="true"></i>
+                                <% } %>
+                                </td>
+
+                                <td>
+                                    <a href="<%= recentlyCreatedIssues[i].html_url %>"><%= recentlyCreatedIssues[i].title %></a>
+                                </td>
+                                <td>
+                                    <%= recentlyCreatedIssues[i].assignee.login %>
+                                </td>
+                           </tr>
+                        <% } %>
+                    </table>
+
+                    <h3><%= recentlyClosedIssuesTotal %> issues closed in the last 7 days:</h3>
+                    <table>
+                        <% for(var i=0; i < recentlyClosedIssues.length; i++) { %>
+                           <tr>
+                                <td>
+                                    <i class="fa fa-check-circle-o" aria-hidden="true"></i>
+                                </td>
+                                <td>
+                                    <a href="<%= recentlyClosedIssues[i].html_url %>"><%= recentlyClosedIssues[i].title %></a>
+                                </td>
+                                <td>
+                                    <%= recentlyClosedIssues[i].assignee.login %>
+                                </td>
+                           </tr>
+                        <% } %>
+                    </table>
                     </div><!-- col-xs-12 -->
                 </div><!-- row -->
             </div>

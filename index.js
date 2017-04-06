@@ -9,6 +9,7 @@ var githubToken;
 
 const PORT = process.env.PORT || 3000;
 const NDAYS = 5; // The number of days to display
+const RECENTDAYS = 7; // How many days we consider "recent"
 
 if (process.env.ENV === 'production') {
     githubToken = process.env.GITHUB_TOKEN;
@@ -56,6 +57,10 @@ app.get('/', function (req, res) {
         let data = {
             issueTotal: issuesData.issueTotalsByDate[Object.keys(issuesData.issueTotalsByDate)[0]],
             importantIssueTotal: issuesData.importantIssueTotalsByDate[Object.keys(issuesData.importantIssueTotalsByDate)[0]],
+            recentlyCreatedIssues: issuesData.recentlyCreatedIssues,
+            recentlyCreatedIssuesTotal: issuesData.recentlyCreatedIssues.length,
+            recentlyClosedIssues: issuesData.recentlyClosedIssues,
+            recentlyClosedIssuesTotal: issuesData.recentlyClosedIssues.length
         };
 
         let options = {};
@@ -93,20 +98,15 @@ function queryForIssues(options, callBack) {
       args.page = page;
       github.issues.getForRepo(args, function(err, issues) {
         console.log(issues.data.length, 'total issues returned, including pull requests');
-        // TODO use the bluebird promise pattern to paginate
-
         issues = _.filter(issues.data, function(issue) {
           return (!issue.pull_request);
         });
 
-        //callBack(issues);
         mergedIssues = mergedIssues.concat(issues);
-        //console.log(mergedIssues);
         // TODO: check date rather than pages
         if (page < options.pages) {
             getPageIssues(page + 1);
         } else {
-            //console.log('mergedIssues', mergedIssues);
             callBack(mergedIssues);
         }
       });
@@ -170,11 +170,22 @@ function getIssueData(options, callBack) {
                 }
             });
 
+
+            let recentlyClosedIssues = _.filter(issues, function(issue) {
+              return issue.closed_at >= options.recentDate;
+            });
+
+            let recentlyCreatedIssues = _.filter(issues, function(issue) {
+              return issue.created_at >= options.recentDate;
+            });
+
             let issueData = {
                 issuesOpenedAfterDate: issuesCreatedAfterDate.length,
                 issuesClosedAfterDate: issuesClosedAfterDate.length,
                 issueTotalsByDate: issueTotalsByDate,
-                importantIssueTotalsByDate: importantIssueTotalsByDate
+                importantIssueTotalsByDate: importantIssueTotalsByDate,
+                recentlyCreatedIssues: recentlyCreatedIssues,
+                recentlyClosedIssues: recentlyClosedIssues
             }
 
             callBack(issueData);
@@ -220,9 +231,16 @@ function setDefaultOptions(NDAYS) {
     let sinceDate = date.toISOString();
     sinceDate = convertTimeToMidnight(sinceDate);
 
+    let d = new Date();
+    d.setDate(d.getDate() - RECENTDAYS);
+    let recentDate = d.toISOString();
+    recentDate = convertTimeToMidnight(recentDate);
+
     let options = {
         NDAYS: NDAYS,
         sinceDate: sinceDate,
+        RECENTDAYS: RECENTDAYS,
+        recentDate: recentDate,
         filter: 'all',
         state: 'all',
         pages: 1,
