@@ -51,18 +51,6 @@ h3 {
 
 // Charts
 
-.chart-container {
-}
-
-.number-container {
-
-}
-
-#issuesChart {
-    max-height: 500px;
-}
-
-
 .number {
     width: 100%;
     text-align: center;
