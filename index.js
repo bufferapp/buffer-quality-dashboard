@@ -164,7 +164,7 @@ function getIssueData(options, callBack) {
                     if (convertTimeToMidnight(openedIssue.created_at) > date) {
                         issueTotalsByDate[date]--;
                         if (isImportantIssue(openedIssue)) {
-                            importantIssueTotalsByDate[date]++;
+                            importantIssueTotalsByDate[date]--;
                         }
                     }
                 }
