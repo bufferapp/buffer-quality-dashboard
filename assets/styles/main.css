@@ -51,6 +51,14 @@ h3 {
 
 // Charts
 
+.chart-container {
+}
+
+.number-container {
+
+}
+
+
 .number {
     width: 100%;
     text-align: center;
