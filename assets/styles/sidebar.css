@@ -18,9 +18,9 @@
     transition: all 0.5s ease;
 }
 
-#wrapper.toggled {
-    padding-left: 225px;
-}
+// #wrapper.toggled {
+//     padding-left: 225px;
+// }
 
 #sidebar-wrapper {
     z-index: 1000;
@@ -37,9 +37,9 @@
     transition: all 0.5s ease;
 }
 
-#wrapper.toggled #sidebar-wrapper {
-    width: 225px;
-}
+// #wrapper.toggled #sidebar-wrapper {
+//     width: 225px;
+// }
 
 #page-content-wrapper {
     width: 100%;
@@ -47,10 +47,10 @@
     padding: 15px;
 }
 
-#wrapper.toggled #page-content-wrapper {
-    position: absolute;
-    margin-right: -225px;
-}
+// #wrapper.toggled #page-content-wrapper {
+//     position: absolute;
+//     margin-right: -225px;
+// }
 
 /* Sidebar Styles */
 
