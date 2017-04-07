@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 const NDAYS = 30; // The number of days to display
 const RECENTDAYS = 7; // How many days we consider "recent"
 
-if (process.env.ENV === 'production') {
+if (process.env.GITHUB_TOKEN) {
     githubToken = process.env.GITHUB_TOKEN;
 } else {
     try {
@@ -97,6 +97,9 @@ function queryForIssues(options, callBack) {
       console.log('options.pages', options.pages)
       args.page = page;
       github.issues.getForRepo(args, function(err, issues) {
+        if (err) {
+          return callBack(err)
+        }
         console.log(issues.data.length, 'total issues returned, including pull requests');
         issues = _.filter(issues.data, function(issue) {
           return (!issue.pull_request);
@@ -107,7 +110,7 @@ function queryForIssues(options, callBack) {
         if (page < options.pages) {
             getPageIssues(page + 1);
         } else {
-            callBack(mergedIssues);
+            callBack(null, mergedIssues);
         }
       });
     }
@@ -117,7 +120,7 @@ function queryForIssues(options, callBack) {
 
 // returns array of num issues open by day
 function getIssueData(options, callBack) {
-    queryForIssues(options, function(issues) {
+    queryForIssues(options, function(err, issues) {
 
         let issuesClosedAfterDate = _.filter(issues, function(issue) {
           return issue.closed_at >= options.sinceDate;
@@ -128,7 +131,7 @@ function getIssueData(options, callBack) {
         });
 
         // Now we need to get current open issues
-        queryForIssues({filter: 'open', state: 'open'}, function(openIssues) {
+        queryForIssues({filter: 'open', state: 'open'}, function(err, openIssues) {
 
             let openImportantIssues = _.filter(openIssues, function(issue) {
                 return isImportantIssue(issue);
@@ -248,4 +251,3 @@ function setDefaultOptions(NDAYS) {
 
     return options;
 }
-
