@@ -46,7 +46,7 @@
                         <div class="row">
                             <div class="col-xs-6 col-sm-12">
                                 <div class="card alert alert-info number-container">
-                                    <h3>Important Issues</h3>
+                                    <h3>Open Important Issues <a href="#explanations">(?)</a></h3>
                                     <p class="number">
                                         <%= importantIssueTotal %>
                                     </p>
@@ -55,7 +55,7 @@
 
                             <div class="col-xs-6 col-sm-12">
                                 <div class="card alert alert-success number-container">
-                                    <h3>Total Issues</h3>
+                                    <h3>Open Issues</h3>
                                     <p class="number">
                                         <%= issueTotal %>
                                     </p>
@@ -99,7 +99,7 @@
                                     <a href="<%= recentlyCreatedIssues[i].html_url %>"><%= recentlyCreatedIssues[i].title %></a>
                                 </td>
                                 <td>
-                                    <%= recentlyCreatedIssues[i].assignee.login %>
+                                    <%= (recentlyCreatedIssues[i].assignee) ? recentlyCreatedIssues[i].assignee.login : 'No-one' %>
                                 </td>
                            </tr>
                         <% } %>
@@ -116,7 +116,7 @@
                                     <a href="<%= recentlyClosedIssues[i].html_url %>"><%= recentlyClosedIssues[i].title %></a>
                                 </td>
                                 <td>
-                                    <%= recentlyClosedIssues[i].assignee.login %>
+                                    <%= (recentlyClosedIssues[i].assignee) ? recentlyClosedIssues[i].assignee.login : 'No-one' %>
                                 </td>
                            </tr>
                         <% } %>

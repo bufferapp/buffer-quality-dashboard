@@ -66,7 +66,11 @@ app.get('/', function (req, res) {
         let options = {};
         ejs.renderFile(filename, data, options, function(err, str){
             // str is a rendered HTML string
-            res.send(str);
+            if(!err) {
+                res.send(str);
+            } else {
+                console.log(err);
+            }
         });
     });
 
@@ -94,18 +98,24 @@ function queryForIssues(options, callBack) {
 
     function getPageIssues(page) {
       console.log('page', page);
-      console.log('options.pages', options.pages)
       args.page = page;
       github.issues.getForRepo(args, function(err, issues) {
         if (err) {
           return callBack(err)
         }
-        console.log(issues.data.length, 'total issues returned, including pull requests');
-        issues = _.filter(issues.data, function(issue) {
-          return (!issue.pull_request);
-        });
 
-        mergedIssues = mergedIssues.concat(issues);
+        // so that a page of just pull requests doesn't break
+        if (issues && issues.data) {
+            console.log(issues.data.length, 'total issues returned, including pull requests');
+            issues = _.filter(issues.data, function(issue) {
+                return (!issue.pull_request);
+            });
+
+            mergedIssues = mergedIssues.concat(issues);
+        } else {
+            callBack(null, mergedIssues);
+        }
+
         // TODO: check date rather than pages
         if (page < options.pages) {
             getPageIssues(page + 1);
@@ -114,6 +124,7 @@ function queryForIssues(options, callBack) {
         }
       });
     }
+
     getPageIssues(1);
 
 }
@@ -131,7 +142,7 @@ function getIssueData(options, callBack) {
         });
 
         // Now we need to get current open issues
-        queryForIssues({filter: 'open', state: 'open'}, function(err, openIssues) {
+        queryForIssues({filter: 'open', state: 'open', pages: options.pages}, function(err, openIssues) {
 
             let openImportantIssues = _.filter(openIssues, function(issue) {
                 return isImportantIssue(issue);
