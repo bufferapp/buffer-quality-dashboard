@@ -1,0 +1,78 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  # Key to specity what namespace this app runs in
+  namespace: internal
+  # Something unique
+  name: quality-dashboard
+  labels:
+    # Use at least app and service labels. Specific and unique labels are needed
+    # so Kubernetes can control the Deployment and Services can direct traffic
+    # at Pods
+    app: quality-dashboard
+    service: github
+    # It's helpful to add this from the beginning to be prepared for canary deloys
+    track: stable
+spec:
+  # The number of pods we are scaled to
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        # Just copied from above - these will be added to the Pod itself.
+        # These are neeeded for the reasons mentioned above.
+        app: quality-dashboard
+        service: github
+        track: stable
+    spec:
+      # Can have multiple containers per Pod. List them in this array:
+      containers:
+      # The name of the Container within the Pod
+      - name: quality-dashboard
+        # A placeholder image name when we first deploy.
+        # Jenkins will build out production image.
+        image: bufferapp/placeholder:1.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: quality-dashboard-github
+              key: github-token
+      # Our Docker Hub secret so Kubernetes can pull private images
+      imagePullSecrets:
+        - name: dhbufferapp
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quality-dashboard
+  namespace: internal
+  annotations:
+    # An AWS resource id to point to the certificate we want to use for
+    # this service's load balancer
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-west-2:980620087509:certificate/a2b75e2b-e100-487d-bab1-149efab1d5f4
+    # The protocol of the traffic going from the LB to the cluster
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
+  labels:
+    # Labels for this service - Easiest to copy from above
+    app: quality-dashboard
+    service: github
+spec:
+  ports:
+    # This configures the load balancer to listen on 443 and send traffic
+    # to port 8080 in the matching Pods.
+    - port: 443
+      targetPort: 8080
+      protocol: TCP
+      name: https
+  selector:
+    # This will send traffic from this service to any Pods with the matching
+    # labels. Use labels to match the Pod definition above.
+    # Leave "track" out if you'd like to split traffic between a stable and canary.
+    app: quality-dashboard
+    service: github
+  # This type will create an external ELB in AWS for external traffic.
+  type: LoadBalancer

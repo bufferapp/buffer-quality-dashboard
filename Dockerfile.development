@@ -1,0 +1,12 @@
+FROM node:6.10-slim
+
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+RUN npm install -g nodemon
+
+EXPOSE 80
+
+ENV NODE_ENV development
+
+CMD nodemon index.js
