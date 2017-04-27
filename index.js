@@ -9,7 +9,7 @@ var githubToken;
 
 const PORT = process.env.PORT || 3000;
 const NDAYS = 30; // The number of days to display
-const RECENTDAYS = 7; // How many days we consider "recent"
+const RECENTDAYS = 7; // How many days we consider "recent"yadaydaya
 
 if (process.env.GITHUB_TOKEN) {
     githubToken = process.env.GITHUB_TOKEN;
@@ -77,7 +77,8 @@ app.get('/', function (req, res) {
 })
 
 app.listen(PORT, function () {
-    console.log('Listening on port ' + PORT + '!')
+    console.log('Listening on port ' + PORT + '!');
+    console.log('env', process.env);
 })
 
 // queries GitHub for issues
@@ -91,17 +92,17 @@ function queryForIssues(options, callBack) {
 
     };
 
-    // if (options.sinceDate != null) {
-    //     args.since = options.sinceDate; // Only issues updated at or after this time are returned
-    // }
     var mergedIssues = [];
 
     function getPageIssues(page) {
       console.log('page', page);
+        console.log("process.env.GITHUB_TOKEN", process.env.GITHUB_TOKEN);
+        console.log('githubToken', githubToken);
       args.page = page;
       github.issues.getForRepo(args, function(err, issues) {
         if (err) {
-          return callBack(err)
+          console.log(err);
+          return callBack(err);
         }
 
         // so that a page of just pull requests doesn't break
@@ -110,7 +111,6 @@ function queryForIssues(options, callBack) {
             issues = _.filter(issues.data, function(issue) {
                 return (!issue.pull_request);
             });
-
             mergedIssues = mergedIssues.concat(issues);
         } else {
             callBack(null, mergedIssues);
@@ -217,7 +217,7 @@ const github = new GitHubApi({
         "user-agent": "Buffer-GitHub-Client" // GitHub is happy with a unique user agent
     },
     followRedirects: false, // default: true; there's currently an issue with non-get redirects, so allow ability to disable follow-redirects
-    timeout: 5000
+    timeout: 20000
 });
 github.authenticate({
   type: 'oauth',
@@ -257,7 +257,7 @@ function setDefaultOptions(NDAYS) {
         recentDate: recentDate,
         filter: 'all',
         state: 'all',
-        pages: 4,
+        pages: 5,
     };
 
     return options;

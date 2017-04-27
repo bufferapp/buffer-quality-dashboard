@@ -9,4 +9,4 @@ EXPOSE 80
 
 ENV NODE_ENV development
 
-CMD nodemon index.js
+CMD [ "nodemon", "index.js" ]
