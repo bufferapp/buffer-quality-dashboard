@@ -78,7 +78,6 @@ app.get('/', function (req, res) {
 
 app.listen(PORT, function () {
     console.log('Listening on port ' + PORT + '!');
-    console.log('env', process.env);
 })
 
 // queries GitHub for issues
@@ -96,8 +95,6 @@ function queryForIssues(options, callBack) {
 
     function getPageIssues(page) {
       console.log('page', page);
-        console.log("process.env.GITHUB_TOKEN", process.env.GITHUB_TOKEN);
-        console.log('githubToken', githubToken);
       args.page = page;
       github.issues.getForRepo(args, function(err, issues) {
         if (err) {
@@ -257,7 +254,7 @@ function setDefaultOptions(NDAYS) {
         recentDate: recentDate,
         filter: 'all',
         state: 'all',
-        pages: 5,
+        pages: 10,
     };
 
     return options;
