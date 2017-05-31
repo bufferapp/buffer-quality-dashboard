@@ -1,7 +1,7 @@
 #This should be how to have redis and dashboard in 2 containers and link together instead of insane run commans
 # How to run this? How does this work with the production.yml?
 #should be able to reference the token somehow secretly somewhere
-
+version: "2" # version of docker compose
 services:
   quality-dash:
       build:
@@ -10,10 +10,13 @@ services:
       volumes:
        - .:/usr/src/app/ # not sure about the .: syntax there
       environment:
+       - GITHUB_TOKEN=${GITHUB_TOKEN}
        - REDIS_HOST=redis
        - REDIS_PORT=6379 # pretty sure the redis image we have on dockerhub is the standard one with port 6379
       links:
         - redis
+      ports:
+        - "8080:8080"
   redis:
     image: redis #this is the dockerhub default?
     ports:
