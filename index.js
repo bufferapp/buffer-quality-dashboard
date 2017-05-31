@@ -1,13 +1,13 @@
-var express = require('express');
-var _ = require('underscore');
-var Promise = require('bluebird');
-var ejs = require('ejs');
-var app = express();
-var path = __dirname + '/views/';
-var GitHubApi = require('github');
+const express = require('express');
+const _ = require('underscore');
+const ejs = require('ejs');
+const app = express();
+const path = __dirname + '/views/';
+const GitHubApi = require('github');
 var githubToken;
-
-const PORT = process.env.PORT || 3000;
+const redis = require('redis');
+const redisClient = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST);
+const PORT = process.env.PORT || 8080;
 const NDAYS = 30; // The number of days to display
 const RECENTDAYS = 7; // How many days we consider "recent"yadaydaya
 
@@ -22,6 +22,8 @@ if (process.env.GITHUB_TOKEN) {
         return;
     }
 }
+
+app.set('redisClient', redisClient);
 
 app.use(express.static('assets'))
 
@@ -254,7 +256,7 @@ function setDefaultOptions(NDAYS) {
         recentDate: recentDate,
         filter: 'all',
         state: 'all',
-        pages: 10,
+        pages: 5,
     };
 
     return options;
