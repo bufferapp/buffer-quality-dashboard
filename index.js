@@ -6,7 +6,7 @@ const path = __dirname + '/views/';
 const GitHubApi = require('github');
 var githubToken;
 const redis = require('redis');
-//const redisClient = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST);
+const redisClient = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST);
 const PORT = process.env.PORT || 8080;
 const NDAYS = 30; // The number of days to display
 const RECENTDAYS = 7; // How many days we consider "recent"yadaydaya
@@ -23,9 +23,7 @@ if (process.env.GITHUB_TOKEN) {
     }
 }
 
-console.log(githubToken);
-
-//app.set('redisClient', redisClient);
+app.set('redisClient', redisClient);
 
 app.use(express.static('assets'))
 
@@ -58,6 +56,7 @@ app.get('/', function (req, res) {
 
     getIssueData(options, function(issuesData) {
         let filename = path + "index.ejs";
+
         let data = {
             issueTotal: issuesData.issueTotalsByDate[Object.keys(issuesData.issueTotalsByDate)[0]],
             importantIssueTotal: issuesData.importantIssueTotalsByDate[Object.keys(issuesData.importantIssueTotalsByDate)[0]],
@@ -86,20 +85,20 @@ app.listen(PORT, function () {
 
 // queries GitHub for issues
 function queryForIssues(options, callBack) {
-    var args = {
+
+    let args = {
         owner: 'bufferapp',
         repo: 'buffer-web',
         filter: options.filter,
         state: options.state,
         per_page: 100
-
     };
-
-    var mergedIssues = [];
+    let mergedIssues = [];
 
     function getPageIssues(page) {
       console.log('page', page);
       args.page = page;
+
       github.issues.getForRepo(args, function(err, issues) {
         if (err) {
           console.log(err);
@@ -128,10 +127,15 @@ function queryForIssues(options, callBack) {
 
     getPageIssues(1);
 
+
+
+
+
 }
 
 // returns array of num issues open by day
 function getIssueData(options, callBack) {
+
     queryForIssues(options, function(err, issues) {
 
         let issuesClosedAfterDate = _.filter(issues, function(issue) {
@@ -203,6 +207,9 @@ function getIssueData(options, callBack) {
                 recentlyClosedIssues: recentlyClosedIssues
             }
 
+            // test - cache this for 30 min
+            redisClient.setex('issuesOpenedAfterDate', 30 * 60, issuesCreatedAfterDate.length);
+
             callBack(issueData);
         });
     });
@@ -218,7 +225,7 @@ const github = new GitHubApi({
         "user-agent": "Buffer-GitHub-Client" // GitHub is happy with a unique user agent
     },
     followRedirects: false, // default: true; there's currently an issue with non-get redirects, so allow ability to disable follow-redirects
-    timeout: 20000
+    timeout: 50000
 });
 github.authenticate({
   type: 'oauth',
